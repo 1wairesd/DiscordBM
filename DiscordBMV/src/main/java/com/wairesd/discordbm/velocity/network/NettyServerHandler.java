@@ -5,17 +5,21 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.wairesd.discordbm.bukkit.models.unregister.UnregisterMessage;
 import com.wairesd.discordbm.common.models.register.RegisterMessage;
-import com.wairesd.discordbm.common.models.response.ResponseMessage;
 import com.wairesd.discordbm.velocity.config.configurators.Settings;
 import com.wairesd.discordbm.velocity.database.DatabaseManager;
 import com.wairesd.discordbm.velocity.discord.ResponseHandler;
 import com.wairesd.discordbm.velocity.models.command.CommandDefinition;
+import com.wairesd.discordbm.common.models.response.ResponseMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 
 import java.net.InetSocketAddress;
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
     private final Gson gson = new Gson();
@@ -69,20 +73,37 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         JsonObject json = gson.fromJson(msg, JsonObject.class);
         String type = json.get("type").getAsString();
 
-        if ("register".equals(type)) {
-            RegisterMessage regMsg = gson.fromJson(json, RegisterMessage.class);
-            InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-            String ip = remoteAddress.getAddress().getHostAddress();
-            int port = remoteAddress.getPort();
-            handleRegister(ctx, regMsg, ip, port);
-        } else if ("unregister".equals(type)) {
-            UnregisterMessage unregMsg = gson.fromJson(json, UnregisterMessage.class);
-            handleUnregister(ctx, unregMsg);
-        } else if ("response".equals(type)) {
-            handleResponse(json);
-        } else {
-            logger.warn("Unknown message type: {}", type);
+        switch (type) {
+            case "register" -> {
+                RegisterMessage regMsg = gson.fromJson(json, RegisterMessage.class);
+                InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
+                String ip = remoteAddress.getAddress().getHostAddress();
+                int port = remoteAddress.getPort();
+                handleRegister(ctx, regMsg, ip, port);
+            }
+            case "unregister" -> {
+                UnregisterMessage unregMsg = gson.fromJson(json, UnregisterMessage.class);
+                handleUnregister(ctx, unregMsg);
+            }
+            case "response" -> {
+                ResponseMessage responseMsg = gson.fromJson(json, ResponseMessage.class);
+                if (responseMsg.containsPlaceholders()) {
+                    processPlaceholders(responseMsg);
+                }
+                handleResponse(responseMsg);
+            }
+            default -> logger.warn("Unknown message type: {}", type);
         }
+    }
+
+    private void processPlaceholders(ResponseMessage message) {
+        if (message.placeholders() == null || message.placeholders().isEmpty()) return;
+
+        Map<String, String> results = new HashMap<>();
+        message.placeholders().forEach((ph, value) -> {
+            String processedValue = ph + "_processed";
+            results.put(ph, processedValue);
+        });
     }
 
     private void handleUnregister(ChannelHandlerContext ctx, UnregisterMessage unregMsg) {
@@ -107,7 +128,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         }
     }
 
-    private void handleRegister(ChannelHandlerContext ctx, RegisterMessage regMsg, String ip, int port) {
+    private <T> void handleRegister(ChannelHandlerContext ctx, RegisterMessage<T> regMsg, String ip, int port) {
         if (regMsg.secret() == null || !regMsg.secret().equals(Settings.getSecretCode())) {
             ctx.writeAndFlush("Error: Invalid secret code");
             dbManager.incrementFailedAttempt(ip);
@@ -123,6 +144,15 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             }
         }
 
+        regMsg.playerName().ifPresent(playerName -> {
+            UUID playerUUID = UUID.randomUUID();
+            try {
+                dbManager.savePlayer(playerUUID, playerName);
+            } catch (SQLException e) {
+                logger.error("Failed to save player to database", e);
+            }
+        });
+
         nettyServer.setServerName(ctx.channel(), regMsg.serverName());
         if (regMsg.commands() != null && !regMsg.commands().isEmpty()) {
             if (Settings.isDebugPluginConnections()) {
@@ -134,9 +164,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         }
     }
 
-    private void handleResponse(JsonObject json) {
+    private void handleResponse(ResponseMessage respMsg) {
         if (!authenticated) return;
-        ResponseMessage respMsg = gson.fromJson(json, ResponseMessage.class);
         ResponseHandler.handleResponse(respMsg);
     }
 

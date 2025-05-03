@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class NettyClient {
@@ -166,8 +167,10 @@ public class NettyClient {
                 plugin.getServerName(),
                 plugin.getName(),
                 List.of(),
-                secretCode
+                secretCode,
+                Optional.empty()
         );
+
         String json = gson.toJson(registerMsg);
         send(json);
         if (Settings.isDebugCommandRegistrations()) {

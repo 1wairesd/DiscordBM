@@ -16,8 +16,8 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -110,13 +110,24 @@ public class Commands {
         List<CommandCondition> conditions = getConditions(cmdData);
         List<CommandAction> actions = getActions(cmdData);
 
+        List<CommandStructured.PlaceholderConfig> placeholderConfigList = getList(
+                cmdData,
+                "placeholder_configs",
+                data -> new CommandStructured.PlaceholderConfig(
+                        getString(data, "placeholder"),
+                        getString(data, "player_source"),
+                        getString(data, "server_source")
+                )
+        );
+
         return new CommandStructured(
                 name,
                 description,
                 context,
                 options,
                 conditions,
-                actions
+                actions,
+                placeholderConfigList
         );
     }
 

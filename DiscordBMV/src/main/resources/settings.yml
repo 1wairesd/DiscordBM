@@ -4,6 +4,12 @@ Discord:
     type: "playing"
     message: "Velocity Server"
 
+
+cache:
+  bypass: false
+
+placeholder-timeout: 10
+
 netty:
   port: 8080
 

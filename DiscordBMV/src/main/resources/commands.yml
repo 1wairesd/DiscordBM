@@ -1,28 +1,151 @@
-# Example
 commands:
-  - name: "hello"
-    description: "Says hello to the user"
+  - name: "greet"
+    description: "Greets a user with a custom message"
+    context: "both"
+    options:
+      - name: "name"
+        type: "STRING"
+        description: "User's name"
+        required: true
+    actions:
+      - type: "send_message"
+        message: "👋 Hello, {name}! Welcome to the server!"
+
+  - name: "test"
+    description: "Show useful links"
+    context: "server"
+    actions:
+      - type: "send_message"
+        message: "**Useful links:**"
+      - type: "button"
+        label: "GitHub"
+        style: "LINK"
+        url: "https://github.com"
+        emoji: "🐙"
+      - type: "button"
+        label: "Support"
+        style: "PRIMARY"
+        message: "Contact support here: @Administrator √"
+        emoji: "🛠️"
+        disabled: false
+
+  - name: "ban"
+    description: "Ban a user (Admins only)"
     context: "server"
     options:
-      - name: "target"
-        type: "STRING"
-        description: "Who to greet"
+      - name: "user"
+        type: "USER"
+        description: "User to ban"
         required: true
     conditions:
       - type: "permission"
-        role: "Admin"
+        role_id: "123456789012345678"
     actions:
       - type: "send_message"
-        message: "Hello, {user}! You greeted {target}."
-  - name: "openwebsite"
-    description: "Open the website"
-    context: "both"
+        message: "🚫 {user} has been banned!"
+
+  - name: "announce"
+    description: "Send announcement to #news"
+    context: "server"
+    options:
+      - name: "text"
+        type: "STRING"
+        description: "Announcement text"
+        required: true
     actions:
-      - type: send_message
-        message: "Click the button below to open the site:"
-      - type: button
-        label: "Open the site"
-        style: "LINK"
-        url: "https://example.com"
-        emoji: "🔗"
-        disabled: false
+      - type: "send_message"
+        message: "📢 **Announcement:** {text}"
+        response_type: "SPECIFIC_CHANNEL"
+        target_id: "1298327402417754114"
+
+  - name: "update"
+    description: "Edit an existing message"
+    context: "server"
+    options:
+      - name: "message_id"
+        type: "STRING"
+        description: "ID сообщения"
+        required: true
+      - name: "new_text"
+        type: "STRING"
+        description: "Новый текст"
+        required: true
+    actions:
+      - type: "send_message"
+        message: "{new_text}"
+        response_type: "EDIT_MESSAGE"
+        target_id: "{message_id}"
+
+  - name: "poll"
+    description: "Create a simple poll"
+    context: "server"
+    options:
+      - name: "question"
+        type: "STRING"
+        description: "Poll question"
+        required: true
+    actions:
+      - type: "send_message"
+        message: "📊 **Poll:** {question}"
+      - type: "button"
+        label: "Yes"
+        style: "SUCCESS"
+        message: "You voted **Yes**!"
+      - type: "button"
+        label: "No"
+        style: "DANGER"
+        message: "You voted **No**!"
+
+  - name: "welcome"
+    description: "Send a private welcome message"
+    context: "server"
+    actions:
+      - type: "send_message"
+        message: "🎉 Welcome to the server! Check the rules in #info."
+        response_type: "DIRECT_MESSAGE"
+
+  - name: "calc"
+    description: "Simple calculator"
+    context: "both"
+    options:
+      - name: "a"
+        type: "NUMBER"
+        description: "First number"
+        required: true
+      - name: "b"
+        type: "NUMBER"
+        description: "Second number"
+        required: true
+    actions:
+      - type: "send_message"
+        message: "🔢 Result: {a} + {b} = {sum}"  # sum должно вычисляться в коде
+
+  - name: "status"
+    description: "Check server status"
+    context: "server"
+    actions:
+      - type: "send_message"
+        message: "🟢 Server is online!"
+      - type: "button"
+        label: "Refresh"
+        style: "SECONDARY"
+        message: "Refreshing status..."
+        emoji: "🔄"
+        disabled: true
+
+  - name: "role"
+    description: "Get a role"
+    context: "server"
+    options:
+      - name: "role"
+        type: "STRING"
+        description: "Choose role"
+        required: true
+        choices:
+          - name: "Developer"
+            value: "dev"
+          - name: "Designer"
+            value: "design"
+    actions:
+      - type: "send_message"
+        message: "🎭 You selected: {role}"

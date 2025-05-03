@@ -7,6 +7,7 @@ import com.wairesd.discordbm.velocity.config.configurators.Settings;
 import com.wairesd.discordbm.velocity.models.command.CommandDefinition;
 import com.wairesd.discordbm.velocity.models.request.RequestMessage;
 import com.wairesd.discordbm.velocity.network.NettyServer;
+import com.wairesd.discordbm.velocity.placeholders.PlaceholderManager;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -14,6 +15,7 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -30,20 +32,23 @@ public class DiscordBotListener extends ListenerAdapter {
     private final CommandExecutor commandExecutor;
     private final ConcurrentHashMap<UUID, SlashCommandInteractionEvent> pendingRequests = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, SelectionInfo> pendingSelections = new ConcurrentHashMap<>();
+    private final PlaceholderManager placeholderManager;
 
-    public DiscordBotListener(DiscordBMV plugin, NettyServer nettyServer, Logger logger) {
+    public DiscordBotListener(DiscordBMV plugin, NettyServer nettyServer, Logger logger, PlaceholderManager placeholderManager, PlaceholderManager placeholderManager1) {
         this.plugin = plugin;
         this.nettyServer = nettyServer;
         this.logger = logger;
+        this.placeholderManager = placeholderManager1;
 
         if (plugin.getDiscordBotManager().getJda() != null) {
-            this.commandExecutor = new CommandExecutor();
+            this.commandExecutor = new CommandExecutor(placeholderManager);
             logger.info("CommandExecutor initialized successfully");
         } else {
             logger.error("Failed to initialize CommandExecutor - JDA is null!");
             this.commandExecutor = null;
         }
     }
+
 
     public ConcurrentHashMap<UUID, SlashCommandInteractionEvent> getPendingRequests() {
         return pendingRequests;
@@ -154,8 +159,17 @@ public class DiscordBotListener extends ListenerAdapter {
             return;
         }
 
-        sendRequestToSelectedServer(selectionInfo.event(), targetServer, chosenServerName);
+        String selectedPlayer = event.getUser().getName();
+
+        RequestMessage request = createRequestMessage(
+                event,
+                targetServer.serverName(),
+                selectedPlayer
+        );
+
+        sendRequestToSelectedServer(selectionInfo.event(), targetServer, request);
     }
+
 
     private NettyServer.ServerInfo findTargetServer(List<NettyServer.ServerInfo> servers, String chosenServerName) {
         return servers.stream()
@@ -164,8 +178,15 @@ public class DiscordBotListener extends ListenerAdapter {
                 .orElse(null);
     }
 
-    private void sendRequestToSelectedServer(SlashCommandInteractionEvent event, NettyServer.ServerInfo targetServer, String chosenServerName) {
-        sendRequestToServer(event, targetServer, generateRequestId());
+    private void sendRequestToSelectedServer(SlashCommandInteractionEvent event,
+                                             NettyServer.ServerInfo targetServer,
+                                             RequestMessage request) {
+        String json = GSON.toJson(request);
+
+        nettyServer.sendMessage(targetServer.channel(), json);
+
+        UUID requestId = UUID.fromString(request.requestId());
+        pendingRequests.put(requestId, event);
     }
 
     private void sendRequestToServer(SlashCommandInteractionEvent event, NettyServer.ServerInfo serverInfo, UUID requestId) {
@@ -198,8 +219,54 @@ public class DiscordBotListener extends ListenerAdapter {
 
     private RequestMessage createRequestMessage(SlashCommandInteractionEvent event, UUID requestId) {
         Map<String, String> options = event.getOptions().stream()
-                .collect(Collectors.toMap(opt -> opt.getName(), opt -> opt.getAsString()));
-        return new RequestMessage("request", event.getName(), options, requestId.toString());
+                .collect(Collectors.toMap(
+                        opt -> opt.getName(),
+                        opt -> opt.getAsString()
+                ));
+
+        String serverName = nettyServer.getServersForCommand(event.getName()).stream()
+                .findFirst()
+                .map(NettyServer.ServerInfo::serverName)
+                .orElse("default");
+
+        return new RequestMessage(
+                "request",
+                event.getName(),
+                options,
+                requestId.toString(),
+                serverName, // Используем реальное имя сервера
+                event.getUser().getName()
+        );
+    }
+
+
+    private RequestMessage createRequestMessage(StringSelectInteractionEvent event,
+                                                String serverName,
+                                                String playerName) {
+        UUID requestId = generateRequestId();
+        SlashCommandInteractionEvent originalEvent = pendingSelections.values().stream()
+                .filter(info -> info.event().getId().equals(event.getMessageId()))
+                .findFirst()
+                .map(SelectionInfo::event)
+                .orElse(null);
+
+        Map<String, String> options = new HashMap<>();
+        if (originalEvent != null) {
+            options = originalEvent.getOptions().stream()
+                    .collect(Collectors.toMap(
+                            opt -> opt.getName(),
+                            opt -> opt.getAsString()
+                    ));
+        }
+
+        return new RequestMessage(
+                "request",
+                originalEvent != null ? originalEvent.getName() : "unknown",
+                options,
+                requestId.toString(),
+                serverName,
+                playerName
+        );
     }
 
     private void replySelectionTimeout(StringSelectInteractionEvent event) {

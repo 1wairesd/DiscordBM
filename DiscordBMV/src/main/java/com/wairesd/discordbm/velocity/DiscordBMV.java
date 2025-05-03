@@ -16,6 +16,8 @@ import com.wairesd.discordbm.velocity.discord.DiscordBotListener;
 import com.wairesd.discordbm.velocity.discord.DiscordBotManager;
 import com.wairesd.discordbm.velocity.discord.ResponseHandler;
 import com.wairesd.discordbm.velocity.network.NettyServer;
+import com.wairesd.discordbm.velocity.placeholders.PlaceholderManager;
+import net.william278.papiproxybridge.api.PlaceholderAPI;
 import net.dv8tion.jda.api.JDA;
 import org.slf4j.Logger;
 
@@ -31,6 +33,8 @@ public class DiscordBMV {
     private DatabaseManager dbManager;
     private CommandManager commandManager;
     private DiscordBotManager discordBotManager;
+    private PlaceholderManager placeholderManager;
+    private PlaceholderManager anotherPlaceholderManager;
 
     @Inject
     public DiscordBMV(Logger logger, @DataDirectory Path dataDirectory, ProxyServer proxy) {
@@ -80,6 +84,14 @@ public class DiscordBMV {
     }
 
     private void initializeDiscordBot() {
+        PlaceholderAPI placeholderAPI = PlaceholderAPI.createInstance();
+
+        placeholderManager = new PlaceholderManager(
+                placeholderAPI,
+                dbManager,
+                logger
+        );
+
         String token = Settings.getBotToken();
         String activityType = Settings.getActivityType();
         String activityMessage = Settings.getActivityMessage();
@@ -97,7 +109,9 @@ public class DiscordBMV {
         jda.addEventListener(new ButtonInteractionListener());
         nettyServer.setJda(jda);
 
-        DiscordBotListener listener = new DiscordBotListener(this, nettyServer, logger);
+        DiscordBotListener listener = new DiscordBotListener(this, nettyServer, logger, placeholderManager, anotherPlaceholderManager);
+
+
         jda.addEventListener(listener);
 
         ResponseHandler.init(listener, logger);

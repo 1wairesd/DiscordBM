@@ -95,4 +95,3 @@ import org.gradle.api.file.DuplicatesStrategy
 tasks.withType(Jar).configureEach {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
-

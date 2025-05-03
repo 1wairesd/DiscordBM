@@ -1,12 +1,13 @@
 package com.wairesd.discordbm.bukkit.api.models.register;
 
-import com.google.gson.Gson;
-import com.wairesd.discordbm.bukkit.DiscordBMB;
-import com.wairesd.discordbm.bukkit.config.configurators.Settings;
 import com.wairesd.discordbm.bukkit.models.command.Command;
+import com.wairesd.discordbm.bukkit.config.configurators.Settings;
+import com.wairesd.discordbm.bukkit.DiscordBMB;
 import com.wairesd.discordbm.common.models.register.RegisterMessage;
+import com.google.gson.Gson;
 
 import java.util.List;
+import java.util.Optional;
 
 public class CommandRegister {
     private final DiscordBMB plugin;
@@ -26,8 +27,10 @@ public class CommandRegister {
                 plugin.getServerName(),
                 command.pluginName,
                 List.of(command),
-                secret
+                secret,
+                Optional.empty()
         );
+
         plugin.getNettyService().sendNettyMessage(gson.toJson(msg));
 
         if (Settings.isDebugCommandRegistrations()) {

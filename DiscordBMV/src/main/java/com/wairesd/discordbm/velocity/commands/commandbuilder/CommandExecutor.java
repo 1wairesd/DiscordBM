@@ -3,12 +3,13 @@ package com.wairesd.discordbm.velocity.commands.commandbuilder;
 import com.wairesd.discordbm.velocity.commands.commandbuilder.models.contexts.Context;
 import com.wairesd.discordbm.velocity.commands.commandbuilder.models.structures.CommandStructured;
 import com.wairesd.discordbm.velocity.config.configurators.Settings;
+import com.wairesd.discordbm.velocity.placeholders.PlaceholderManager;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import org.slf4j.Logger;
@@ -19,15 +20,22 @@ import java.util.List;
 
 public class CommandExecutor {
     private static final Logger logger = LoggerFactory.getLogger(CommandExecutor.class);
+    private final PlaceholderManager placeholderManager;
+
+    public CommandExecutor(PlaceholderManager placeholderManager) {
+        this.placeholderManager = placeholderManager;
+    }
 
     public void execute(SlashCommandInteractionEvent event, CommandStructured command) {
         if (event == null || command == null) {
             throw new IllegalArgumentException("Event and command cannot be null");
         }
 
-        event.deferReply(true).queue(hook -> {
-            Context context = new Context(event);
+        Context context = new Context(event);
 
+        processPlaceholders(event, context, command);
+
+        event.deferReply(true).queue(hook -> {
             if (!command.getConditions().stream().allMatch(condition -> condition.check(context))) {
                 hook.sendMessage("You don't meet the conditions to use this command.")
                         .setEphemeral(true)
@@ -48,6 +56,16 @@ public class CommandExecutor {
         });
     }
 
+    private void processPlaceholders(SlashCommandInteractionEvent event, Context context, CommandStructured command) {
+        String messageText = context.getMessageText();
+
+        String playerName = event.getUser().getName();
+        String serverName = context.getServer();
+
+        String processedText = placeholderManager.resolvePlaceholders(messageText, playerName, serverName).join();
+
+        context.setMessageText(processedText);
+    }
 
     private void sendReply(InteractionHook hook, Context context) {
         var messageText = context.getMessageText().isEmpty() ? " " : context.getMessageText();

@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import java.util.Map;
 
 public class SendMessageAction implements CommandAction {
@@ -81,7 +82,10 @@ public class SendMessageAction implements CommandAction {
     }
 
     private String formatMessage(SlashCommandInteractionEvent event, String template) {
+        if (template == null) return "";
+
         String result = PlaceholderUser.replace(template, event);
+        if (result == null) result = "";
 
         for (OptionMapping option : event.getOptions()) {
             String placeholder = "{" + option.getName() + "}";
@@ -90,5 +94,4 @@ public class SendMessageAction implements CommandAction {
 
         return result;
     }
-
 }

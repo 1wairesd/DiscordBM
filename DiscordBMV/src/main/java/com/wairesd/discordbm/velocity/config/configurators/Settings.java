@@ -5,10 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
@@ -127,6 +124,14 @@ public class Settings {
 
     public static boolean isViewConnectedBannedIp() {
         return (boolean) getConfigValue("view_connected_banned_ip", false);
+    }
+
+    public static boolean shouldBypassCache() {
+        return (boolean) getConfigValue("cache.bypass", false);
+    }
+
+    public static int getPlaceholderTimeout() {
+        return (int) getConfigValue("placeholder-timeout", 10);
     }
 
     // Utility method to get values from the config

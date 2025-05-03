@@ -1,15 +1,16 @@
 package com.wairesd.discordbm.bukkit.network;
 
-import com.google.gson.Gson;
 import com.wairesd.discordbm.bukkit.DiscordBMB;
-import com.wairesd.discordbm.bukkit.config.configurators.Settings;
 import com.wairesd.discordbm.bukkit.models.command.Command;
 import com.wairesd.discordbm.common.models.embed.EmbedDefinition;
 import com.wairesd.discordbm.common.models.register.RegisterMessage;
 import com.wairesd.discordbm.common.models.response.ResponseMessage;
+import com.wairesd.discordbm.bukkit.config.configurators.Settings;
+import com.google.gson.Gson;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Optional;
 
 public class NettyService {
     private final DiscordBMB plugin;
@@ -104,7 +105,12 @@ public class NettyService {
         if (nettyClient != null && nettyClient.isActive() && !addonCommands.isEmpty()) {
             String secret = Settings.getSecretCode();
             RegisterMessage<Command> msg = new RegisterMessage<>(
-                    "register", serverName, plugin.getName(), addonCommands, secret
+                    "register",
+                    serverName,
+                    plugin.getName(),
+                    addonCommands,
+                    secret,
+                    Optional.empty()
             );
             nettyClient.send(gson.toJson(msg));
             if (Settings.isDebugCommandRegistrations()) {

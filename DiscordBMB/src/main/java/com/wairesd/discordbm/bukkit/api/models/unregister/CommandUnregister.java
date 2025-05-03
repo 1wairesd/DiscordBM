@@ -1,9 +1,9 @@
 package com.wairesd.discordbm.bukkit.api.models.unregister;
 
-import com.google.gson.Gson;
-import com.wairesd.discordbm.bukkit.DiscordBMB;
 import com.wairesd.discordbm.bukkit.config.configurators.Settings;
+import com.wairesd.discordbm.bukkit.DiscordBMB;
 import com.wairesd.discordbm.bukkit.models.unregister.UnregisterMessage;
+import com.google.gson.Gson;
 
 public class CommandUnregister {
     private final DiscordBMB plugin;

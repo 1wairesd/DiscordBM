@@ -2,11 +2,11 @@ package com.wairesd.discordbm.bukkit.api;
 
 import com.google.gson.Gson;
 import com.wairesd.discordbm.bukkit.DiscordBMB;
-import com.wairesd.discordbm.bukkit.DiscordBMB.DiscordCommandRegistrationListener;
+import com.wairesd.discordbm.bukkit.models.command.Command;
 import com.wairesd.discordbm.bukkit.api.models.register.CommandRegister;
 import com.wairesd.discordbm.bukkit.api.models.unregister.CommandUnregister;
 import com.wairesd.discordbm.bukkit.handler.DiscordCommandHandler;
-import com.wairesd.discordbm.bukkit.models.command.Command;
+import com.wairesd.discordbm.bukkit.DiscordBMB.DiscordCommandRegistrationListener;
 import com.wairesd.discordbm.common.models.embed.EmbedDefinition;
 
 public class DiscordBMBApi {

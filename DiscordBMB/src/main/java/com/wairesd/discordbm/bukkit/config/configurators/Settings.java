@@ -1,12 +1,12 @@
 package com.wairesd.discordbm.bukkit.config.configurators;
 
-import org.bukkit.plugin.java.JavaPlugin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 

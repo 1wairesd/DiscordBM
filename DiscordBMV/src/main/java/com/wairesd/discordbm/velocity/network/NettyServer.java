@@ -145,7 +145,7 @@ public class NettyServer {
                         }
                     }
 
-                    ((JDA) jda).upsertCommand(cmdData).queue();
+                    ((net.dv8tion.jda.api.JDA) jda).upsertCommand(cmdData).queue();
 
                     if (Settings.isDebugCommandRegistrations()) {
                         logger.info("Registered command: {} with context: {}", cmd.name(), cmd.context());

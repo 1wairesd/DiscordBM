@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 public class PlaceholderUser {
     public static String replace(String template, SlashCommandInteractionEvent event) {
+        if (template == null) return null;
         return template
                 .replace("{user}", event.getUser().getAsTag())
                 .replace("{user_id}", event.getUser().getId())
