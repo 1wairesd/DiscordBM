@@ -1,151 +1,225 @@
+# Example
 commands:
-  - name: "greet"
-    description: "Greets a user with a custom message"
-    context: "both"
+  - name: "hello"
+    description: "Says hello to the user"
+    context: "server"
     options:
-      - name: "name"
+      - name: "target"
         type: "STRING"
-        description: "User's name"
-        required: true
-    actions:
-      - type: "send_message"
-        message: "👋 Hello, {name}! Welcome to the server!"
-
-  - name: "test"
-    description: "Show useful links"
-    context: "server"
-    actions:
-      - type: "send_message"
-        message: "**Useful links:**"
-      - type: "button"
-        label: "GitHub"
-        style: "LINK"
-        url: "https://github.com"
-        emoji: "🐙"
-      - type: "button"
-        label: "Support"
-        style: "PRIMARY"
-        message: "Contact support here: @Administrator √"
-        emoji: "🛠️"
-        disabled: false
-
-  - name: "ban"
-    description: "Ban a user (Admins only)"
-    context: "server"
-    options:
-      - name: "user"
-        type: "USER"
-        description: "User to ban"
+        description: "Who to greet"
         required: true
     conditions:
       - type: "permission"
-        role_id: "123456789012345678"
+        role_id: "<role_id(example: 1234567890123456789)>"
     actions:
       - type: "send_message"
-        message: "🚫 {user} has been banned!"
+        message: "Hello, {user}! You greeted {target}."
+    fail-actions:
+      - type: send_message
+        message: "No Permission"
 
-  - name: "announce"
-    description: "Send announcement to #news"
-    context: "server"
-    options:
-      - name: "text"
-        type: "STRING"
-        description: "Announcement text"
-        required: true
+  - name: "openwebsite"
+    description: "Open the website"
+    ephemeral: false
+    context: "both"
     actions:
-      - type: "send_message"
-        message: "📢 **Announcement:** {text}"
-        response_type: "SPECIFIC_CHANNEL"
-        target_id: "1298327402417754114"
+      - type: send_message
+        message: "Click the button below to open the site:"
+      - type: button
+        label: "Open the site"
+        style: "LINK"
+        url: "https://example.com"
+        emoji: "🔗"
+        disabled: false
 
-  - name: "update"
-    description: "Edit an existing message"
+  - name: "send-message"
+    description: "Send a message with a button"
     context: "server"
+    actions:
+      - type: send_message
+        message: "Click the button below!"
+        response_type: reply
+        label: "welcome_message"
+      - type: button
+        label: "Click Me"
+        style: PRIMARY
+        id: "btn_click"
+        message: "You clicked the button!"
+
+  - name: "edit-button"
+    description: "Edit the button in the welcome message"
+    context: "server"
+    actions:
+      - type: send_message
+        response_type: edit_message
+        target_id: "{message_id_from_previous_command}"
+        message: "Updated message with a new button text"
+      - type: edit_component
+        target_message: "welcome_message"
+        component_id: "btn_click"
+        label: "Updated Button"
+        style: DANGER
+        disabled: false
+
+  - name: "send-test"
+    description: "Send a test message"
+    context: server
+    actions:
+      - type: send_message
+        response_type: REPLY
+        message: "This is a test message."
+        label: test_message
+
+  - name: "delete-test"
+    description: "Delete the test message"
+    context: server
+    actions:
+      - type: delete_message
+        label: test_message
+
+  - name: "send-to-channel"
+    description: "Send a message to a specific channel"
+    context: server
     options:
-      - name: "message_id"
-        type: "STRING"
-        description: "ID сообщения"
-        required: true
-      - name: "new_text"
-        type: "STRING"
-        description: "Новый текст"
+      - name: channel
+        type: CHANNEL
+        description: The channel to send the message to
         required: true
     actions:
+      - type: send_message
+        response_type: SPECIFIC_CHANNEL
+        target_id: "{channel}"
+        message: "Hello from specific channel!"
+        label: specific_message
+
+  - name: "delete-specific"
+    description: "Delete the message sent to specific channel"
+    context: server
+    actions:
+      - type: delete_message
+        label: specific_message
+
+  - name: "feedback"
+    context: server
+    description: "Leave feedback about the server"
+    conditions:
+      - type: "permission"
+        role_id: "<ID>"
+    actions:
+      - type: "send_form"
+        form_name: "feedback-form"
       - type: "send_message"
-        message: "{new_text}"
-        response_type: "EDIT_MESSAGE"
-        target_id: "{message_id}"
+        message: "Thanks for your feedback, {username}! You rated us {rating}/10. We'll consider your input: {review}"
+        response_type: "REPLY"
+
+  - name: "register"
+    context: server
+    description: "Register a new player"
+    conditions:
+      - type: "not_have_role"
+        role_id: "<ID>"
+        actions:
+          - type: "send_form"
+            form_name: "register-form"
+          - type: "add_role"
+            role_id: "<ID>"
+          - type: "send_message"
+            message: "Hi {nick}! Thanks for registering. Telegram: {telegram}, Accepted rules: {accept}"
+            response_type: "REPLY"
 
   - name: "poll"
-    description: "Create a simple poll"
-    context: "server"
+    context: server
+    description: "Simple poll"
+    actions:
+      - type: "send_form"
+        form_name: "poll-form"
+      - type: "send_message"
+        message: "Thanks! Favorite mode: {mode}. Would recommend: {recommend}."
+        response_type: "REPLY"
+
+  - name: "feedback_button"
+    context: server
+    description: "Get a button to leave feedback"
+    actions:
+      - type: "button"
+        label: "Leave Feedback"
+        style: "PRIMARY"
+        form_name: "feedback-form"
+        required_role: "<ID>"
+        message: "Thanks for your feedback, {username}! You rated us {rating}/10. We'll consider your input: {review}"
+        timeout: infinite
+      - type: "send_message"
+        message: "Click the button to leave feedback"
+        response_type: "REPLY"
+
+  - name: "test_4"
+    context: both
+    description: An example command with chance condition
+    conditions:
+      - type: "chance"
+        percent: "10"
+    actions:
+      - type: "send_message"
+        message: "You got lucky!"
+    fail-actions:
+      - type: "send_message"
+        message: "You're out of luck"
+
+  - name: "saynick"
+    description: "Displays a message with the player's nickname"
+    context: server
     options:
-      - name: "question"
+      - name: "player"
         type: "STRING"
-        description: "Poll question"
+        description: "Player's nickname"
         required: true
     actions:
+      - type: "resolve_placeholders"
+        template: "Hello, {player}! You entered a player's nickname. hearts %player_health%"
+        player: "{player}"
       - type: "send_message"
-        message: "📊 **Poll:** {question}"
-      - type: "button"
-        label: "Yes"
-        style: "SUCCESS"
-        message: "You voted **Yes**!"
-      - type: "button"
-        label: "No"
-        style: "DANGER"
-        message: "You voted **No**!"
+        message: "{resolved_message}"
 
-  - name: "welcome"
-    description: "Send a private welcome message"
-    context: "server"
-    actions:
-      - type: "send_message"
-        message: "🎉 Welcome to the server! Check the rules in #info."
-        response_type: "DIRECT_MESSAGE"
-
-  - name: "calc"
-    description: "Simple calculator"
-    context: "both"
+  - name: "user-info"
+    description: "Shows information about a player"
+    context: server
     options:
-      - name: "a"
-        type: "NUMBER"
-        description: "First number"
-        required: true
-      - name: "b"
-        type: "NUMBER"
-        description: "Second number"
+      - name: "target"
+        type: USER
+        description: "Select a player"
         required: true
     actions:
-      - type: "send_message"
-        message: "🔢 Result: {a} + {b} = {sum}"  # sum должно вычисляться в коде
+      - type: send_message
+        message: |
+          👤 Name: **{user_display_name}**
+          🏷️ Tag: **{user_tag}**
+          🆔 ID: `{user_id}`
+          📆 Created: {user_create_at}
+          🟢 Status: {user_status}
+          👋 Joined: {user_joined}
+          🖼️ Avatar: {user_icon}
+        response_type: REPLY
 
-  - name: "status"
-    description: "Check server status"
-    context: "server"
-    actions:
-      - type: "send_message"
-        message: "🟢 Server is online!"
-      - type: "button"
-        label: "Refresh"
-        style: "SECONDARY"
-        message: "Refreshing status..."
-        emoji: "🔄"
-        disabled: true
-
-  - name: "role"
-    description: "Get a role"
-    context: "server"
+  - name: "page-embed"
+    description: "pages"
+    context: server
     options:
-      - name: "role"
-        type: "STRING"
-        description: "Choose role"
-        required: true
-        choices:
-          - name: "Developer"
-            value: "dev"
-          - name: "Designer"
-            value: "design"
+      - name: "page"
+        type: STRING
+        description: "Specify a page"
+        required: false
     actions:
-      - type: "send_message"
-        message: "🎭 You selected: {role}"
+      - type: "send_page"
+        page_id: "{option:page|1-embed}"
+
+  - name: "page-content"
+    description: "pages"
+    context: server
+    options:
+      - name: "page"
+        type: STRING
+        description: "Specify a page"
+        required: false
+    actions:
+      - type: "send_page"
+        page_id: "{option:page|1-content}"

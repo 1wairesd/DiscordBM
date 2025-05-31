@@ -42,7 +42,7 @@ public class CommandAdmin implements CommandExecutor, TabCompleter {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String host = Settings.getVelocityHost();
             int port   = Settings.getVelocityPort();
-            plugin.getNettyService().initializeNettyClient(host, port);
+            plugin.getNettyService().initializeNettyClient();
         });
 
         sender.sendMessage(Messages.getMessage("reload-success"));

@@ -2,41 +2,47 @@ plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'xyz.jpenilla.run-velocity' version '2.3.1'
+    id 'maven-publish'
 }
 
 group = 'com.wairesd.discordbm.velocity'
 version = '1.0'
 
-repositories {
-    mavenCentral()
-    maven {
-        name = "papermc-repo"
-        url = "https://repo.papermc.io/repository/maven-public/"
-    }
-    maven {
-        name = "sonatype"
-        url = "https://oss.sonatype.org/content/groups/public/"
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId = 'com.wairesd.discordbm'
+            artifactId = 'DiscordBMV'
+            version = '1.0'
+
+        }
     }
 }
 
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.papermc.io/repository/maven-public/' }
+}
+
 dependencies {
-    implementation project(':DiscordBMB')
     implementation project(':common')
+    implementation project(':api')
 
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-    implementation 'org.json:json:20240303'
-    implementation 'net.sf.trove4j:trove4j:3.0.3'
-    implementation 'com.neovisionaries:nv-websocket-client:2.14'
-    implementation 'org.yaml:snakeyaml:2.4'
-    implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.15.3'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.15.3'
-    implementation 'org.apache.commons:commons-collections4:4.4'
+    implementation("org.apache.commons:commons-lang3:3.17.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("net.sf.trove4j:trove4j:3.0.3")
+    implementation("com.neovisionaries:nv-websocket-client:2.14")
+    implementation("org.yaml:snakeyaml:2.4")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.15.3")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.3")
+    implementation("org.apache.commons:commons-collections4:4.4")
 
-    implementation 'org.xerial:sqlite-jdbc:3.49.1.0'
-    implementation 'org.slf4j:slf4j-api:1.7.36'
-    implementation 'io.netty:netty-all:4.2.0.Final'
+    implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+    implementation("org.slf4j:slf4j-api:1.7.36")
+    implementation("ch.qos.logback:logback-classic:1.2.11")
+    implementation("io.netty:netty-all:4.2.0.Final")
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
@@ -54,9 +60,6 @@ tasks {
         relocate 'net.dv8tion.jda', 'com.wairesd.shaded.jda'
         relocate 'okhttp3', 'com.wairesd.shaded.okhttp3'
         relocate 'gnu.trove', 'com.wairesd.shaded.gnu.trove'
-        relocate 'org.json', 'com.wairesd.shaded.org.json'
-        relocate 'com.neovisionaries', 'com.wairesd.shaded.com.neovisionaries'
-        relocate 'com.fasterxml.jackson', 'com.wairesd.shaded.jackson'
         relocate 'org.apache.commons.collections4', 'com.wairesd.shaded.org.apache.commons.collections4'
 
         from project(':common').sourceSets.main.output
@@ -64,7 +67,7 @@ tasks {
     }
 
     build {
-        dependsOn(tasks.shadowJar)
+        dependsOn shadowJar
     }
 
     compileJava {
@@ -89,8 +92,6 @@ processResources {
         expand props
     }
 }
-
-import org.gradle.api.file.DuplicatesStrategy
 
 tasks.withType(Jar).configureEach {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE

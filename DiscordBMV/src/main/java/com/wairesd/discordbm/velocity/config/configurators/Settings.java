@@ -1,17 +1,21 @@
 package com.wairesd.discordbm.velocity.config.configurators;
 
+import com.wairesd.discordbm.common.utils.logging.PluginLogger;
+import com.wairesd.discordbm.common.utils.logging.Slf4jPluginLogger;
 import com.wairesd.discordbm.velocity.utils.SecretManager;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 
 public class Settings {
-    private static final Logger logger = LoggerFactory.getLogger(Settings.class);
+    private static final PluginLogger logger = new Slf4jPluginLogger(LoggerFactory.getLogger("DiscordBMV"));
     private static final String CONFIG_FILE_NAME = "settings.yml";
     private static final String DEFAULT_FORWARDING_SECRET_FILE = "secret.complete.code";
 
@@ -30,14 +34,11 @@ public class Settings {
             if (!configFile.exists()) {
                 createDefaultConfig();
             }
-
             Yaml yaml = new Yaml();
             try (FileInputStream inputStream = new FileInputStream(configFile)) {
                 config = yaml.load(inputStream);
             }
-
             validateConfig();
-            logger.info("Settings loaded from {}", configFile.getPath());
         } catch (Exception e) {
             logger.error("Error loading settings.yml: {}", e.getMessage(), e);
         }
@@ -60,6 +61,7 @@ public class Settings {
         loadConfig();
         secretManager = new SecretManager(configFile.getParentFile().toPath(), getForwardingSecretFile());
         Messages.reload();
+        logger.info("settings.yml reloaded successfully");
     }
 
     private static void validateConfig() {
@@ -68,7 +70,6 @@ public class Settings {
         }
     }
 
-    // Debug options
     private static boolean getDebugOption(String path, boolean defaultValue) {
         return (boolean) getConfigValue("debug." + path, defaultValue);
     }
@@ -89,6 +90,14 @@ public class Settings {
         return getDebugOption("debug-command-registrations", false);
     }
 
+    public static boolean isDebugNettyStart() {
+        return getDebugOption("debug-netty-start", false);
+    }
+
+    public static boolean isDebugSendMessageAction() {
+        return getDebugOption("debug-sendmessage-action", false);
+    }
+
     public static boolean isDebugAuthentication() {
         return getDebugOption("debug-authentication", true);
     }
@@ -97,17 +106,33 @@ public class Settings {
         return getDebugOption("debug-errors", true);
     }
 
-    // Configuration getters
     public static String getBotToken() {
         return (String) getConfigValue("Discord.Bot-token", "");
     }
 
     public static int getNettyPort() {
-        return (int) getConfigValue("netty.port", 0);
+        return (int) getConfigValue("netty.port", 8080);
     }
+
+    public static String getNettyIp() {
+        return (String) getConfigValue("netty.ip", "");
+    }
+
 
     public static String getForwardingSecretFile() {
         return (String) getConfigValue("forwarding-secret-file", DEFAULT_FORWARDING_SECRET_FILE);
+    }
+
+    public static boolean isDefaultEphemeral() {
+        return (boolean) getConfigValue("commands.default-ephemeral", false);
+    }
+
+    public static long getButtonTimeoutMs() {
+        return ((Number) getConfigValue("buttons.timeout-ms", 900_000)).longValue();
+    }
+
+    public static boolean isDebugButtonRegister() {
+        return getDebugOption("debug-button-register", false);
     }
 
     public static String getSecretCode() {
@@ -126,37 +151,22 @@ public class Settings {
         return (boolean) getConfigValue("view_connected_banned_ip", false);
     }
 
-    public static boolean shouldBypassCache() {
-        return (boolean) getConfigValue("cache.bypass", false);
-    }
-
-    public static int getPlaceholderTimeout() {
-        return (int) getConfigValue("placeholder-timeout", 10);
-    }
-
-    // Utility method to get values from the config
     private static Object getConfigValue(String path, Object defaultValue) {
         String[] keys = path.split("\\.");
         Object current = config;
-
         for (int i = 0; i < keys.length; i++) {
             if (!(current instanceof Map)) {
                 return defaultValue;
             }
-
             Map<?, ?> map = (Map<?, ?>) current;
             current = map.get(keys[i]);
-
             if (current == null) {
                 return defaultValue;
             }
-
             if (i == keys.length - 1) {
                 return current;
             }
         }
-
         return defaultValue;
     }
-
 }

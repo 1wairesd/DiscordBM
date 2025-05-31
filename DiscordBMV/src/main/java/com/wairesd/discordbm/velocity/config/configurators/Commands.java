@@ -1,13 +1,16 @@
 package com.wairesd.discordbm.velocity.config.configurators;
 
-import com.wairesd.discordbm.velocity.commands.commandbuilder.actions.buttons.ButtonAction;
-import com.wairesd.discordbm.velocity.commands.commandbuilder.actions.messages.SendMessageAction;
-import com.wairesd.discordbm.velocity.commands.commandbuilder.conditions.permissions.PermissionCondition;
-import com.wairesd.discordbm.velocity.commands.commandbuilder.models.actions.CommandAction;
-import com.wairesd.discordbm.velocity.commands.commandbuilder.models.codinations.CommandCondition;
-import com.wairesd.discordbm.velocity.commands.commandbuilder.models.options.CommandOption;
-import com.wairesd.discordbm.velocity.commands.commandbuilder.models.structures.CommandStructured;
-import org.slf4j.Logger;
+import com.wairesd.discordbm.common.utils.logging.PluginLogger;
+import com.wairesd.discordbm.common.utils.logging.Slf4jPluginLogger;
+import com.wairesd.discordbm.velocity.DiscordBMV;
+import com.wairesd.discordbm.velocity.commandbuilder.parser.CommandParserAction;
+import com.wairesd.discordbm.velocity.commandbuilder.models.actions.CommandAction;
+import com.wairesd.discordbm.velocity.commandbuilder.models.codinations.CommandCondition;
+import com.wairesd.discordbm.velocity.commandbuilder.models.options.CommandOption;
+import com.wairesd.discordbm.velocity.commandbuilder.models.structures.CommandStructured;
+
+import com.wairesd.discordbm.velocity.commandbuilder.parser.CommandParserCondition;
+import com.wairesd.discordbm.velocity.commandbuilder.parser.CommandParserFailAction;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -16,26 +19,28 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.*;
-import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Commands {
-    private static final Logger logger = LoggerFactory.getLogger(Commands.class);
+    private static final PluginLogger logger = new Slf4jPluginLogger(LoggerFactory.getLogger("DiscordBMV"));
     private static final String COMMANDS_FILE_NAME = "commands.yml";
 
     private static Path dataDirectory;
     private static volatile List<CommandStructured> customCommands = Collections.emptyList();
+
+    public static DiscordBMV plugin;
 
     public static void init(Path dataDir) {
         dataDirectory = dataDir;
         loadCommands();
     }
 
-    private static synchronized void loadCommands() {
+    private static synchronized List<CommandStructured> loadCommands() {
         try {
             Path commandsPath = dataDirectory.resolve(COMMANDS_FILE_NAME);
             if (!Files.exists(commandsPath)) {
@@ -44,9 +49,10 @@ public class Commands {
 
             List<CommandStructured> newCommands = loadCommandsFromFile(commandsPath);
             customCommands = Collections.unmodifiableList(newCommands);
-            logger.info("{} reloaded successfully with {} commands", COMMANDS_FILE_NAME, customCommands.size());
+            return customCommands;
         } catch (Exception e) {
             logger.error("Error loading {}: {}", COMMANDS_FILE_NAME, e.getMessage(), e);
+            return Collections.emptyList();
         }
     }
 
@@ -94,7 +100,8 @@ public class Commands {
     }
 
     public static void reload() {
-        loadCommands();
+        List<CommandStructured> reloadedCommands = loadCommands();
+        logger.info("{} reloaded successfully with {} commands", COMMANDS_FILE_NAME, reloadedCommands.size());
     }
 
     public static List<CommandStructured> getCustomCommands() {
@@ -109,16 +116,9 @@ public class Commands {
         List<CommandOption> options = getOptions(cmdData);
         List<CommandCondition> conditions = getConditions(cmdData);
         List<CommandAction> actions = getActions(cmdData);
-
-        List<CommandStructured.PlaceholderConfig> placeholderConfigList = getList(
-                cmdData,
-                "placeholder_configs",
-                data -> new CommandStructured.PlaceholderConfig(
-                        getString(data, "placeholder"),
-                        getString(data, "player_source"),
-                        getString(data, "server_source")
-                )
-        );
+        List<CommandAction> failActions = CommandParserFailAction.parse(cmdData, plugin);
+        Boolean ephemeral = cmdData.containsKey("ephemeral") ?
+                (Boolean) cmdData.get("ephemeral") : null;
 
         return new CommandStructured(
                 name,
@@ -127,7 +127,8 @@ public class Commands {
                 options,
                 conditions,
                 actions,
-                placeholderConfigList
+                failActions,
+                ephemeral
         );
     }
 
@@ -169,20 +170,14 @@ public class Commands {
     }
 
     private static CommandCondition createCondition(Map<String, Object> data) {
-        String type = getString(data, "type");
-        return switch (type) {
-            case "permission" -> new PermissionCondition(data);
-            default -> null;
-        };
+        return CommandParserCondition.parseCondition(data);
     }
 
     private static CommandAction createAction(Map<String, Object> data) {
-        String type = getString(data, "type");
-        return switch (type) {
-            case "send_message" -> new SendMessageAction(data);
-            case "button" -> new ButtonAction(data);
-            default -> null;
-        };
+        if (plugin == null) {
+            throw new IllegalStateException("Plugin instance is not set");
+        }
+        return CommandParserAction.parseAction(data, plugin);
     }
 
     private static boolean getBoolean(Map<String, Object> data, String key, boolean defaultValue) {

@@ -1,13 +1,13 @@
 velocity:
-  secret: "your-secret-code-here"
+  secret: "YourSercretCod"
   host: "127.0.0.1"
-  port: 8080
+  port: "8080"
 
-server: "your-ServerName"
+server: "YourNameServer"
 
 debug:
   debug-connections: false          # Logue connection and disconnects
   debug-client-responses: false    # Logue requests and answers from customers
   debug-command-registrations: false # Log in the registration events of the teams
-  debug-authentication: true       # Log in authentication attempts and their results
   debug-errors: true              # Log in errors
+

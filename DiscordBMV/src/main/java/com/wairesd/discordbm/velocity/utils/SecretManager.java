@@ -1,16 +1,18 @@
 package com.wairesd.discordbm.velocity.utils;
 
-import org.slf4j.Logger;
+import com.wairesd.discordbm.common.utils.logging.PluginLogger;
+import com.wairesd.discordbm.common.utils.logging.Slf4jPluginLogger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
+import java.util.Base64;
 
 public class SecretManager {
-    private static final Logger logger = LoggerFactory.getLogger(SecretManager.class);
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final PluginLogger logger = new Slf4jPluginLogger(LoggerFactory.getLogger("DiscordBMV"));
     private static final SecureRandom random = new SecureRandom();
 
     private final Path secretFilePath;
@@ -25,13 +27,13 @@ public class SecretManager {
         try {
             if (Files.exists(secretFilePath)) {
                 String loadedCode = Files.readString(secretFilePath).trim();
-                logger.info("Loaded secret code from {}", secretFilePath.getFileName());
                 return loadedCode;
             } else {
-                String generatedCode = generateSecretCode();
-                Files.writeString(secretFilePath, generatedCode);
-                logger.info("Generated new secret code and saved to {}", secretFilePath.getFileName());
-                return generatedCode;
+                String rawSecret = generateRawSecretCode();
+                String base64 = Base64.getEncoder().encodeToString(rawSecret.getBytes(StandardCharsets.UTF_8));
+                Files.writeString(secretFilePath, base64);
+                logger.info("Generated new Base64 secret code and saved to {}", secretFilePath.getFileName());
+                return base64;
             }
         } catch (IOException e) {
             logger.error("Error handling secret code file {}: {}", secretFilePath.getFileName(), e.getMessage(), e);
@@ -39,12 +41,17 @@ public class SecretManager {
         }
     }
 
-    private String generateSecretCode() {
-        int length = 16 + random.nextInt(10);
-        StringBuilder sb = new StringBuilder(length);
+    private String generateRawSecretCode() {
+        int length = 15 + random.nextInt(16);
+        StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < length; i++) {
-            sb.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+            int codePoint;
+            do {
+                codePoint = random.nextInt(Character.MAX_CODE_POINT + 1);
+            } while (!Character.isDefined(codePoint) || Character.isISOControl(codePoint));
+
+            sb.appendCodePoint(codePoint);
         }
 
         return sb.toString();

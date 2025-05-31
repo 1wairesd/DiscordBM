@@ -1,4 +1,0 @@
-usage-admin-command: "&cUsage: /discordbotmanager-bukkit reload"
-no-permission: "&cYou do not have permission to use this command."
-reload-success: "&aConfiguration reloaded successfully."
-not-found-messages: "Message not found."

@@ -1,7 +1,6 @@
 plugins {
+    id 'java-library'
     id 'maven-publish'
-    id 'java'
-    id 'xyz.jpenilla.run-paper' version '2.3.1'
 }
 
 group = 'com.wairesd.discordbm'
@@ -11,37 +10,24 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            groupId = 'com.wairesd.discordbm'
-            artifactId = 'DiscordBM'
-            version = '1.0'
-
+            artifactId = 'common'
         }
     }
 }
 
 repositories {
     mavenCentral()
-    maven {
-        name = "papermc-repo"
-        url  = "https://repo.papermc.io/repository/maven-public/"
-    }
-    maven {
-        name = "sonatype"
-        url  = "https://oss.sonatype.org/content/groups/public/"
-    }
+    maven { url 'https://repo.papermc.io/repository/maven-public/' }
 }
 
 dependencies {
+    implementation 'org.apache.logging.log4j:log4j-core:2.24.3'
+    implementation 'org.apache.logging.log4j:log4j-api:2.24.3'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'net.kyori:adventure-api:4.14.0'
     implementation 'net.kyori:adventure-text-serializer-legacy:4.14.0'
-    implementation("net.kyori:adventure-text-minimessage:4.21.0")
-    compileOnly "org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT"
-}
-
-tasks {
-    runServer {
-        minecraftVersion("1.20.4")
-    }
+    implementation 'net.kyori:adventure-text-minimessage:4.21.0'
+    compileOnly 'org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT'
 }
 
 java {
@@ -51,12 +37,4 @@ java {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release.set(17)
-}
-
-processResources {
-    def props = [version: version]
-    filteringCharset 'UTF-8'
-    filesMatching('plugin.yml') {
-        expand props
-    }
 }

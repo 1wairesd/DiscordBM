@@ -1,0 +1,51 @@
+# Example
+forms:
+  feedback-form:
+    title: "Feedback"
+    fields:
+      - label: "What is your nickname?"
+        placeholder: "wairesd"
+        type: "SHORT"
+        required: true
+        variable: "username"
+      - label: "Rate the server from 1 to 10"
+        placeholder: "10"
+        type: "SHORT"
+        required: true
+        variable: "rating"
+      - label: "What did you like or dislike?"
+        placeholder: "You can be detailed"
+        type: "PARAGRAPH"
+        required: false
+        variable: "review"
+  register-form:
+    title: "Registration"
+    fields:
+      - label: "Your Minecraft nickname"
+        placeholder: "For example, wairesd"
+        type: "SHORT"
+        required: true
+        variable: "nick"
+      - label: "Your Telegram (optional)"
+        placeholder: "@username"
+        type: "SHORT"
+        required: false
+        variable: "telegram"
+      - label: "Do you accept the rules?"
+        placeholder: "Type 'yes'"
+        type: "SHORT"
+        required: true
+        variable: "accept"
+  poll-form:
+    title: "Poll"
+    fields:
+      - label: "Which game mode do you like more?"
+        placeholder: "Survival, SkyBlock, Anarchy..."
+        type: "SHORT"
+        required: true
+        variable: "mode"
+      - label: "Would you recommend our server to a friend?"
+        placeholder: "Yes / No"
+        type: "SHORT"
+        required: true
+        variable: "recommend"

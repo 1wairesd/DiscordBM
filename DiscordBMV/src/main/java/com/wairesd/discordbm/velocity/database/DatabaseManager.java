@@ -1,17 +1,17 @@
 package com.wairesd.discordbm.velocity.database;
 
-import org.slf4j.Logger;
+import com.wairesd.discordbm.common.utils.logging.PluginLogger;
+import com.wairesd.discordbm.common.utils.logging.Slf4jPluginLogger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.time.Instant;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class DatabaseManager {
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
+    private static final PluginLogger logger = new Slf4jPluginLogger(LoggerFactory.getLogger("DiscordBMV"));
     static {
         try {
             Class.forName("org.sqlite.JDBC");
@@ -27,12 +27,7 @@ public class DatabaseManager {
                 block_until TIMESTAMP,
                 current_block_time INTEGER DEFAULT 0
             )""".formatted(IP_BLOCKS_TABLE);
-    private static final String CREATE_PLAYERS_TABLE_SQL = """
-    CREATE TABLE IF NOT EXISTS players (
-        uuid TEXT PRIMARY KEY,
-        username TEXT NOT NULL UNIQUE,
-        last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )""";
+
     private final String dbUrl;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -41,37 +36,10 @@ public class DatabaseManager {
         initDatabase();
     }
 
-    public void executeSQL(String sql, Object... params) throws SQLException {
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) {
-                stmt.setObject(i + 1, params[i]);
-            }
-            stmt.executeUpdate();
-        }
-    }
-
-    public <T> T querySQL(String sql, SQLFunction<PreparedStatement, T> handler, Object... params) throws SQLException {
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) {
-                stmt.setObject(i + 1, params[i]);
-            }
-            return handler.apply(stmt);
-        }
-    }
-
-    @FunctionalInterface
-    public interface SQLFunction<P, R> {
-        R apply(P p) throws SQLException;
-    }
-
     private void initDatabase() {
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
-            stmt.execute(CREATE_TABLE_SQL); // Для ip_blocks
-            stmt.execute(CREATE_PLAYERS_TABLE_SQL);
-            logger.info("Database tables initialized");
+            stmt.execute(CREATE_TABLE_SQL);
         } catch (SQLException e) {
             logger.error("Error initializing database", e);
         }
@@ -139,18 +107,6 @@ public class DatabaseManager {
                 }
             }
         }
-    }
-
-    public void savePlayer(UUID uuid, String username) throws SQLException {
-        executeSQL("""
-        INSERT INTO players (uuid, username) 
-        VALUES (?, ?)
-        ON CONFLICT(uuid) DO UPDATE SET 
-            username = excluded.username,
-            last_seen = CURRENT_TIMESTAMP""",
-                uuid.toString(),
-                username
-        );
     }
 
     private PreparedStatement prepareInsertOrUpdateStatement(Connection conn, String ip) throws SQLException {

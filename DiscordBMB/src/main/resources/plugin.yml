@@ -2,6 +2,7 @@ name: DiscordBMB
 version: '1.0'
 main: com.wairesd.discordbm.bukkit.DiscordBMB
 api-version: '1.21'
+softdepend: [PlaceholderAPI]
 authors: [1wairesd]
 commands:
   discordBMB:

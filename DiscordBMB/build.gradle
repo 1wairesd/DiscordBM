@@ -5,11 +5,14 @@ plugins {
     id 'maven-publish'
 }
 
+group = 'com.wairesd.discordbm.bukkit'
+version = '1.0'
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            groupId = 'com.wairesd.discordbm.bukkit'
+            groupId = 'com.wairesd.discordbm'
             artifactId = 'DiscordBMB'
             version = '1.0'
 
@@ -17,32 +20,35 @@ publishing {
     }
 }
 
-group = 'com.wairesd.discordbm.bukkit'
-version = '1.0'
-
 repositories {
     mavenCentral()
-    maven { name = "papermc-repo"; url  = "https://repo.papermc.io/repository/maven-public/" }
-    maven { name = "sonatype";      url  = "https://oss.sonatype.org/content/groups/public/" }
+    maven { url 'https://repo.papermc.io/repository/maven-public/' }
+    maven { url 'https://oss.sonatype.org/content/groups/public/' }
+    maven { url 'https://repo.extendedclip.com/repository/placeholderapi/' }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    implementation("org.yaml:snakeyaml:2.4")
     implementation project(':common')
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'net.kyori:adventure-api:4.14.0'
-    implementation 'org.spongepowered:configurate-core:4.1.2'
-    implementation 'org.spongepowered:configurate-yaml:4.1.2'
-    implementation 'org.slf4j:slf4j-api:2.0.17'
-    implementation 'io.netty:netty-all:4.2.0.Final'
-    compileOnly "org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT"
+    implementation project(':api')
+
+    compileOnly ("com.github.placeholderapi:placeholderapi:2.11.6")
+    compileOnly ("org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT")
+
+    implementation("org.yaml:snakeyaml:2.4")
+    implementation("net.kyori:adventure-api:4.14.0")
+    implementation("org.spongepowered:configurate-core:4.1.2")
+    implementation("org.spongepowered:configurate-yaml:4.1.2")
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    implementation("io.netty:netty-all:4.2.0.Final")
 }
 
 shadowJar {
+    dependsOn ':common:build', ':api:build'
     archiveClassifier.set('')
     mergeServiceFiles()
     from project(':common').sourceSets.main.output
-    // relocate 'com.wairesd.discordbm.common', 'com.wairesd.discordbm.bukkit.shaded.common'
+
 }
 
 tasks.build {
@@ -65,10 +71,22 @@ tasks.withType(JavaCompile).configureEach {
     options.release.set(17)
 }
 
+compileJava {
+    dependsOn ':common:build'
+}
+
 processResources {
     def props = [version: version]
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
         expand props
     }
+}
+
+tasks.named('compileJava') {
+    dependsOn ':common:build'
+}
+
+tasks.named('shadowJar') {
+    dependsOn ':common:build'
 }

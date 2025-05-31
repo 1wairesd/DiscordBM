@@ -1,0 +1,109 @@
+pages:
+  - id: "1-embed"
+    embed:
+      title: "Welcome, {user_display_name}!"
+      description: "👋 Hi! Welcome to our mini journey. Ready to begin?"
+      color: "#00FF00"
+    buttons:
+      - label: "Next ➡️"
+        target_page: "2-embed"
+
+  - id: "2-embed"
+    embed:
+      title: "Page 2"
+      description: |
+        🧭 This is where the real fun begins!
+        🌟 You've taken the first step. Shall we continue?
+      color: "#0000FF"
+    buttons:
+      - label: "⬅️ Back"
+        target_page: "1-embed"
+      - label: "Next ➡️"
+        target_page: "3-embed"
+
+  - id: "3-embed"
+    embed:
+      title: "Page 3"
+      description: |
+        📚 Did you know every day is a chance to learn something new?
+        Don’t stop now!
+      color: "#FF0000"
+    buttons:
+      - label: "⬅️ Back"
+        target_page: "2-embed"
+      - label: "Continue ➡️"
+        target_page: "4-embed"
+
+  - id: "4-embed"
+    embed:
+      title: "Page 4"
+      description: |
+        🌈 Life is brighter when you share good vibes.
+        Smile! 😊
+      color: "#FFFF00"
+    buttons:
+      - label: "⬅️ Back"
+        target_page: "3-embed"
+      - label: "Continue ➡️"
+        target_page: "5-embed"
+
+  - id: "5-embed"
+    embed:
+      title: "Page 5"
+      description: |
+        🎉 Congratulations, you've reached the end!
+        Thanks for taking this journey with us.
+      color: "#FF00FF"
+    buttons:
+      - label: "🔁 Start Over"
+        target_page: "1-embed"
+
+  - id: "1-content"
+    content: |
+      Welcome, {user_display_name}!
+      👋 Hi! Welcome to our mini journey. Ready to begin?
+    buttons:
+      - label: "Next ➡️"
+        target_page: "2-content"
+
+  - id: "2-content"
+    content: |
+      Page 2
+      🧭 This is where the real fun begins!
+      🌟 You've taken the first step. Shall we continue?
+    buttons:
+      - label: "⬅️ Back"
+        target_page: "1-content"
+      - label: "Next ➡️"
+        target_page: "3-content"
+
+  - id: "3-content"
+    content: |
+      Page 3
+      📚 Did you know every day is a chance to learn something new?
+      Don’t stop now!
+    buttons:
+      - label: "⬅️ Back"
+        target_page: "2-content"
+      - label: "Continue ➡️"
+        target_page: "4-content"
+
+  - id: "4-content"
+    content: |
+      Page 4
+      🌈 Life is brighter when you share good vibes.
+      Smile! 😊
+    buttons:
+      - label: "⬅️ Back"
+        target_page: "3-content"
+      - label: "Continue ➡️"
+        target_page: "5-content"
+
+  - id: "5-content"
+    content: |
+      Page 5
+      🎉 Congratulations, you've reached the end!
+      Thanks for taking this journey with us.
+    buttons:
+      - label: "🔁 Start Over"
+        target_page: "1-content"
