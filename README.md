@@ -16,7 +16,7 @@
 <dependency>
   <groupId>com.github.wairesd</groupId>
   <artifactId>DiscordBM</artifactId>
-  <version><b>PLATFORM</b>-1.0.1</version>
+  <version>PLATFORM-1.0.1</version>
 </dependency>
 ```
 > Gradle
@@ -26,7 +26,7 @@ maven {
 }
 ```
 ```groovy
-compileOnly("com.github.wairesd:DiscordBM:<b>PLATFORM</b>-1.0.1")
+compileOnly("com.github.wairesd:DiscordBM:PLATFORM-1.0.1")
 ```
 
 ### Available Platforms
