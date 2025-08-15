@@ -27,6 +27,20 @@ public class Settings {
 
     public static void init(File dataDir) {
         configFile = new File(dataDir, CONFIG_FILE_NAME);
+        if (!configFile.exists()) {
+            try {
+                Files.createDirectories(dataDir.toPath());
+                try (var in = Settings.class.getClassLoader().getResourceAsStream(CONFIG_FILE_NAME)) {
+                    if (in == null) {
+                        throw new IllegalStateException(CONFIG_FILE_NAME + " not found in resources");
+                    }
+                    Files.copy(in, configFile.toPath());
+                    logger.info("Default settings.yml copied from resources");
+                }
+            } catch (Exception e) {
+                logger.error("Failed to create default settings.yml: {}", e.getMessage(), e);
+            }
+        }
         loadConfig();
         secretManager = new SecretManager(dataDir.toPath(), getForwardingSecretFile());
     }
@@ -53,7 +67,6 @@ public class Settings {
             logger.error("Error loading settings.yml: {}", e.getMessage(), e);
         }
     }
-
 
     public static void reload() {
         loadConfig();

@@ -42,6 +42,7 @@ commands:
         url: "https://example.com"
         emoji: "🔗"
         disabled: false
+        timeout: infinite
 
   - name: "send-message"
     description: "Send a message with a button"
@@ -56,6 +57,7 @@ commands:
         style: PRIMARY
         id: "btn_click"
         message: "You clicked the button!"
+        timeout: infinite
 
   - name: "edit-button"
     description: "Edit the button in the welcome message"
