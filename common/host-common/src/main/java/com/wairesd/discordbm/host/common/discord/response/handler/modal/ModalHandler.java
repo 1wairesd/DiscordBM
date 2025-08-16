@@ -11,8 +11,12 @@ import org.slf4j.LoggerFactory;
 import java.util.UUID;
 
 public class ModalHandler {
-    private static DiscordBotListener listener;
+    public static DiscordBotListener listener;
     private static final PluginLogger logger = new Slf4jPluginLogger(LoggerFactory.getLogger("DiscordBM"));
+
+    public ModalHandler(DiscordBotListener listener) {
+        this.listener = listener;
+    }
 
     public static void handleReplyModal(UUID requestId, ResponseMessage respMsg) {
         Reply.handleReplyModal(requestId, respMsg);

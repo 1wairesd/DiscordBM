@@ -23,8 +23,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ResponseHandler {
-    private static DiscordBotListener listener;
-    private static DiscordBMHPlatformManager platformManager;
+    public static DiscordBotListener listener;
+    public static DiscordBMHPlatformManager platformManager;
     private static final PluginLogger logger = new Slf4jPluginLogger(LoggerFactory.getLogger("DiscordBM"));
     public static final ConcurrentHashMap<String, Boolean> sentFormRequests = new ConcurrentHashMap<>();
 

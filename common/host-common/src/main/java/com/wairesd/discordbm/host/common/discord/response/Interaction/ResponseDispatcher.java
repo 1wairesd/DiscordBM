@@ -8,8 +8,6 @@ import com.wairesd.discordbm.host.common.commandbuilder.core.models.conditions.C
 import com.wairesd.discordbm.host.common.commandbuilder.core.models.context.Context;
 import com.wairesd.discordbm.host.common.commandbuilder.core.parser.CommandParserCondition;
 import com.wairesd.discordbm.host.common.config.configurators.Settings;
-import com.wairesd.discordbm.host.common.discord.DiscordBMHPlatformManager;
-import com.wairesd.discordbm.host.common.discord.DiscordBotListener;
 import com.wairesd.discordbm.host.common.discord.response.ResponseHandler;
 import com.wairesd.discordbm.host.common.discord.response.ResponseTypeDetector;
 import com.wairesd.discordbm.host.common.utils.Components;
@@ -28,9 +26,6 @@ import java.util.stream.Collectors;
 public class ResponseDispatcher {
     private static final PluginLogger logger = new Slf4jPluginLogger(LoggerFactory.getLogger("DiscordBM"));
     private static final int RETRY_DELAY_MS = 100;
-
-    private static DiscordBotListener listener;
-    private static DiscordBMHPlatformManager platformManager;
 
     public static void handleResponse(ResponseMessage respMsg) {
         logResponseReceived(respMsg);
@@ -79,10 +74,9 @@ public class ResponseDispatcher {
     }
 
     private static Context createContext(ResponseMessage respMsg) {
-        var event = listener != null ?
-                listener.getRequestSender().getPendingRequests().get(respMsg.requestId()) : null;
-
-        return event != null ? new Context(event) : new Context((SlashCommandInteractionEvent) null);
+        var event = ResponseHandler.listener != null ?
+                ResponseHandler.listener.getRequestSender().getPendingRequests().get(respMsg.requestId()) : null;
+        return event instanceof SlashCommandInteractionEvent ? new Context((SlashCommandInteractionEvent) event) : new Context((SlashCommandInteractionEvent) null);
     }
 
     private static boolean evaluateCondition(Object condMap, Context context) {
@@ -183,7 +177,7 @@ public class ResponseDispatcher {
     }
 
     private static boolean processButtonHook(ResponseMessage respMsg, UUID requestId) {
-        InteractionHook buttonHook = (InteractionHook) platformManager.getPendingButtonRequests().remove(requestId);
+        InteractionHook buttonHook = (InteractionHook) ResponseHandler.platformManager.getPendingButtonRequests().remove(requestId);
         if (buttonHook == null) {
             return false;
         }
@@ -221,7 +215,7 @@ public class ResponseDispatcher {
     }
 
     private static boolean processStoredHook(ResponseMessage respMsg, UUID requestId) {
-        InteractionHook storedHook = listener.getRequestSender().removeInteractionHook(requestId);
+        InteractionHook storedHook = ResponseHandler.listener.getRequestSender().removeInteractionHook(requestId);
         if (storedHook == null) {
             return false;
         }
@@ -231,11 +225,11 @@ public class ResponseDispatcher {
     }
 
     private static void processPendingEvent(ResponseMessage respMsg, UUID requestId) {
-        var event = listener.getRequestSender().getPendingRequests().remove(requestId);
-        if (event == null) {
-            handleMissingEvent(respMsg, requestId);
+        var event = ResponseHandler.listener.getRequestSender().getPendingRequests().remove(requestId);
+        if (event instanceof SlashCommandInteractionEvent) {
+            ResponseHandler.SlashCommandInteraction((SlashCommandInteractionEvent) event, respMsg);
         } else {
-            ResponseHandler.SlashCommandInteraction(event, respMsg);
+            handleMissingEvent(respMsg, requestId);
         }
     }
 
@@ -261,15 +255,15 @@ public class ResponseDispatcher {
     }
 
     private static void retryEventProcessing(ResponseMessage respMsg, UUID requestId) {
-        InteractionHook retryHook = listener.getRequestSender().removeInteractionHook(requestId);
+        InteractionHook retryHook = ResponseHandler.listener.getRequestSender().removeInteractionHook(requestId);
         if (retryHook != null) {
             ResponseHandler.sendResponseWithHook(retryHook, respMsg);
             return;
         }
 
-        var retryEvent = listener.getRequestSender().getPendingRequests().remove(requestId);
-        if (retryEvent != null) {
-            ResponseHandler.SlashCommandInteraction(retryEvent, respMsg);
+        var retryEvent = ResponseHandler.listener.getRequestSender().getPendingRequests().remove(requestId);
+        if (retryEvent instanceof SlashCommandInteractionEvent) {
+            ResponseHandler.SlashCommandInteraction((SlashCommandInteractionEvent) retryEvent, respMsg);
         } else {
             logger.error("Still no event or hook found for requestId: {}", requestId);
         }

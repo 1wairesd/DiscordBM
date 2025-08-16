@@ -13,6 +13,10 @@ import com.wairesd.discordbm.host.common.discord.DiscordBotListener;
 import com.wairesd.discordbm.host.common.discord.DiscordBotManager;
 import com.wairesd.discordbm.host.common.discord.DiscordBMHPlatformManager;
 import com.wairesd.discordbm.host.common.discord.response.ResponseHandler;
+import com.wairesd.discordbm.host.common.discord.response.handler.modal.ModalHandler;
+import com.wairesd.discordbm.host.common.discord.response.handler.modal.option.Modal;
+import com.wairesd.discordbm.host.common.discord.response.handler.modal.option.Reply;
+import com.wairesd.discordbm.host.common.discord.response.handler.sender.option.Embed;
 import com.wairesd.discordbm.host.common.network.NettyServer;
 import com.wairesd.discordbm.host.common.scheduler.WebhookScheduler;
 import com.wairesd.discordbm.host.common.api.HostDiscordBMAPIImpl;
@@ -86,6 +90,10 @@ public class DiscordBMHBootstrap {
         jda.addEventListener(new ButtonInteractionListener(nettyServer, platformManager));
         Map<String, String> requestIdToCommand = new ConcurrentHashMap<>();
         DiscordBotListener listener = new DiscordBotListener(platformManager, nettyServer, logger, requestIdToCommand);
+        Embed embed = new Embed(listener);
+        ModalHandler modalHandler = new ModalHandler(listener);
+        Modal modal = new Modal(listener, platformManager);
+        Reply reply = new Reply(listener);
         jda.addEventListener(listener);
         jda.addEventListener(new ModalInteractionListener(platformManager, requestIdToCommand));
 

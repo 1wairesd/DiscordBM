@@ -17,8 +17,13 @@ import java.util.UUID;
 
 public class Modal {
     private static final PluginLogger logger = new Slf4jPluginLogger(LoggerFactory.getLogger("DiscordBM"));
-    private static DiscordBotListener listener;
-    private static DiscordBMHPlatformManager platformManager;
+    public static DiscordBotListener listener;
+    public static DiscordBMHPlatformManager platformManager;
+
+    public Modal(DiscordBotListener listener, DiscordBMHPlatformManager platformManager) {
+        this.listener = listener;
+        this.platformManager = platformManager;
+    }
 
     public static void handleModalResponse(UUID requestId, ResponseMessage respMsg) {
         ModalDefinition formDef = respMsg.modal();

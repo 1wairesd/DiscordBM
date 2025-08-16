@@ -25,9 +25,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class Embed {
-    private static final PluginLogger logger =
-            new Slf4jPluginLogger(LoggerFactory.getLogger("DiscordBM"));
-    private static DiscordBotListener listener;
+    private static final PluginLogger logger = new Slf4jPluginLogger(LoggerFactory.getLogger("DiscordBM"));
+    public static DiscordBotListener listener;
+
+    public Embed(DiscordBotListener listener) {
+        this.listener = listener;
+    }
 
     public static void sendEmbed(
             SlashCommandInteractionEvent event,
